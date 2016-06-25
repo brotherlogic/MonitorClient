@@ -7,6 +7,8 @@ public class CommandLineInterface {
 	public void handleArguments(String[] args) {
 		if (args.length > 0 && args[0].equals("version")) {
 			System.out.println(client.getVersion());
+		} else if (args.length > 0 && args[0].equals("monitor")) {
+			System.out.println(client.getMonitorIPAndHost(args[1], Integer.parseInt(args[2])));
 		}
 	}
 
