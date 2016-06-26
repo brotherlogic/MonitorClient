@@ -2,16 +2,22 @@ package com.github.brotherlogic.monitorclient;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import discovery.Discovery.Empty;
 import discovery.Discovery.RegistryEntry;
 import discovery.Discovery.ServiceList;
 import discovery.DiscoveryServiceGrpc;
 import discovery.DiscoveryServiceGrpc.DiscoveryServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import monitorproto.MonitorServiceGrpc;
+import monitorproto.MonitorServiceGrpc.MonitorServiceBlockingStub;
+import monitorproto.Monitorproto.Empty;
+import monitorproto.Monitorproto.Heartbeat;
+import monitorproto.Monitorproto.HeartbeatList;
 
 public class MonitorClient {
 
@@ -25,6 +31,22 @@ public class MonitorClient {
 		} catch (IOException e) {
 			return null;
 		}
+	}
+
+	public List<Heartbeat> getHeartbeats(String dHost, int dPort) {
+		List<Heartbeat> beats = new LinkedList<Heartbeat>();
+		String[] ipPort = getMonitorIPAndHost(dHost, dPort).split(":");
+		ManagedChannel channel = ManagedChannelBuilder.forAddress(ipPort[0], Integer.parseInt(ipPort[1]))
+				.usePlaintext(true).build();
+		MonitorServiceBlockingStub blockingStub = MonitorServiceGrpc.newBlockingStub(channel);
+		try {
+			HeartbeatList list = blockingStub.getHeartbeats(Empty.newBuilder().build());
+			beats.addAll(list.getBeatsList());
+			channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return beats;
 	}
 
 	public String getMonitorIPAndHost(String dHost, int dPort) {
@@ -41,7 +63,7 @@ public class MonitorClient {
 
 			try {
 				// Call out to the full end poin
-				ServiceList list = blockingStub.listAllServices(Empty.newBuilder().build());
+				ServiceList list = blockingStub.listAllServices(discovery.Discovery.Empty.newBuilder().build());
 				for (RegistryEntry entry : list.getServicesList()) {
 					System.out.println("Entry :" + entry);
 				}
