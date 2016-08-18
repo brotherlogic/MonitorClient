@@ -19,7 +19,7 @@ public class CommandLineInterface {
 		} else if (args.length > 0 && args[0].equals("list")) {
 			for (Heartbeat beat : client.getHeartbeats(args[1], Integer.parseInt(args[2]))) {
 				System.out.println(
-						beat.getEntry().getName() + ": " + formatter.format(new Date(beat.getBeatTime() * 1000L)));
+						beat.getEntry().getName() + ": " + formatter.format(new Date(beat.getBeatTime() * 1000L)) + beat);
 			}
 		}
 	}
