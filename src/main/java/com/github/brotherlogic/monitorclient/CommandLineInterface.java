@@ -33,8 +33,8 @@ public class CommandLineInterface {
 			List<MessageLog> logs = client.getLogs(args[1], args[2],
 					Integer.parseInt(args[3]));
 			for (MessageLog log : logs) {
-				System.out.println(log.getTimestamps() + ":" + log.getMessage()
-						+ " => " + log);
+				System.out
+						.println(log.getTimestamps() + ":" + log.getMessage());
 			}
 		}
 	}
