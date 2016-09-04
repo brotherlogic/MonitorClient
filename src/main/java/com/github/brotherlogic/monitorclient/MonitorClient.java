@@ -13,8 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 import monitorproto.MonitorServiceGrpc;
 import monitorproto.MonitorServiceGrpc.MonitorServiceBlockingStub;
+import monitorproto.Monitorproto.Empty;
 import monitorproto.Monitorproto.Heartbeat;
 import monitorproto.Monitorproto.HeartbeatList;
+import monitorproto.Monitorproto.MessageLog;
+import monitorproto.Monitorproto.MessageLogReadResponse;
 import discovery.Discovery.RegistryEntry;
 import discovery.Discovery.ServiceList;
 import discovery.DiscoveryServiceGrpc;
@@ -53,6 +56,31 @@ public class MonitorClient {
 			e.printStackTrace();
 		}
 		return beats;
+	}
+
+	public List<MessageLog> getLogs(String name, String dHost, int dPort) {
+		List<MessageLog> logs = new LinkedList<MessageLog>();
+		String[] ipPort = getMonitorIPAndHost(dHost, dPort).split(":");
+		ManagedChannel channel = ManagedChannelBuilder
+				.forAddress(ipPort[0], Integer.parseInt(ipPort[1]))
+				.usePlaintext(true).build();
+		MonitorServiceBlockingStub blockingStub = MonitorServiceGrpc
+				.newBlockingStub(channel);
+
+		try {
+			HeartbeatList list = blockingStub.getHeartbeats(Empty.newBuilder()
+					.build());
+			for (Heartbeat beat : list.getBeatsList()) {
+				if (beat.getEntry().getName().equals(name)) {
+					MessageLogReadResponse resp = blockingStub
+							.readMessageLogs(beat.getEntry());
+					logs.addAll(resp.getLogsList());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return logs;
 	}
 
 	public String getMonitorIPAndHost(String dHost, int dPort) {
